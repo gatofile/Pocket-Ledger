@@ -2,13 +2,13 @@
 
 An offline Android money tracker for recording income and expenses, understanding monthly spending, and managing categories.
 
-**Current version: 0.5.6** · **Android 6.0 or newer**
+**Current version: 0.5.7** · **Android 6.0 or newer**
 
 ## Download and install
 
 Get the APK from the [latest release](https://github.com/gatofile/Pocket-Ledger/releases/latest).
 
-1. Download `Pocket-Ledger-Android-0.5.6.apk` on your Android phone.
+1. Download `Pocket-Ledger-Android-0.5.7.apk` on your Android phone.
 2. Open the downloaded file and follow Android's installation instructions. If asked, allow your browser or Files app to install this APK.
 3. Open Pocket Ledger. No account or internet connection is needed to use it.
 
@@ -25,6 +25,7 @@ Installing an update signed with the same key preserves existing data. Export a 
 - **Localization:** English, Portuguese, Spanish, French, German, Italian, and Japanese, plus a choice of currencies.
 - **Backups:** export and import transactions, categories, and settings as JSON. Backups are compatible with the included web app.
 - **Data controls:** reset appearance or delete activity with an explicit confirmation.
+- **Optional donations:** the Donate button in Settings opens [Ko-fi](https://ko-fi.com/gatofile) in your browser.
 
 Opening the app plays a short animation and selects the current month. Browsing older months keeps charts and category details aligned with the selected month.
 
