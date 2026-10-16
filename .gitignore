@@ -1,0 +1,27 @@
+# Android / Gradle build output
+.gradle/
+**/build/
+.kotlin/
+local.properties
+
+# Local tools, credentials, and signing keys
+work/
+.local/
+.env
+.env.*
+*.keystore
+*.jks
+key.properties
+keystore.properties
+
+# Distribute packages through GitHub Releases
+*.apk
+*.aab
+*.zip
+
+# Editor and operating system files
+.idea/
+*.iml
+.vscode/
+.DS_Store
+Thumbs.db
