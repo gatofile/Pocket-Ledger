@@ -1127,6 +1127,17 @@ private LinearLayout createMonthHeading(String titleText) {
         backupCard.addView(localNote, localNoteParams);
         addPageGap(parent, backupCard, 10);
 
+        LinearLayout supportCard = settingsCard();
+        addSettingHeading(supportCard, tr("Support Pocket Ledger"),
+                tr("Help support development with an optional donation on Ko-fi."),
+                null, R.drawable.ic_settings_support);
+        Button donate = secondaryButton(tr("Donate"));
+        LinearLayout.LayoutParams donateParams = new LinearLayout.LayoutParams(-1, dp(48));
+        donateParams.topMargin = dp(12);
+        supportCard.addView(donate, donateParams);
+        donate.setOnClickListener(view -> openDonationPage());
+        addPageGap(parent, supportCard, 10);
+
         LinearLayout activityCard = settingsCard();
         LinearLayout dangerHeader = new LinearLayout(this);
         dangerHeader.setGravity(Gravity.CENTER_VERTICAL);
@@ -1165,6 +1176,17 @@ private LinearLayout createMonthHeading(String titleText) {
         offline.setGravity(Gravity.CENTER);
         offline.setPadding(dp(8), dp(12), dp(8), dp(14));
         parent.addView(offline);
+    }
+
+    private void openDonationPage() {
+        Intent donation = new Intent(Intent.ACTION_VIEW, Uri.parse("https://ko-fi.com/gatofile"));
+        donation.addCategory(Intent.CATEGORY_BROWSABLE);
+        try {
+            startActivity(donation);
+        } catch (android.content.ActivityNotFoundException exception) {
+            Toast.makeText(this, tr("No browser is available to open the donation page."),
+                    Toast.LENGTH_LONG).show();
+        }
     }
 
     private void addSettingHeading(LinearLayout card, String title, String description, String glyph, int iconResource) {
