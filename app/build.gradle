@@ -1,0 +1,43 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.pocketledger'
+    compileSdk 36
+
+    sourceSets {
+        main {
+            assets.srcDirs = []
+        }
+    }
+
+    defaultConfig {
+        applicationId 'com.pocketledger'
+        minSdk 23
+        targetSdk 34
+        versionCode 13
+        versionName '0.5.6'
+    }
+
+    signingConfigs {
+        debug {
+            def configuredKey = System.getenv('POCKET_LEDGER_DEBUG_KEYSTORE')
+            def workspaceKey = rootProject.file('../../work/pocket-ledger-debug.keystore')
+            if (configuredKey) {
+                storeFile rootProject.file(configuredKey)
+            } else if (workspaceKey.isFile()) {
+                storeFile workspaceKey
+            }
+            storePassword 'android'
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
+        }
+    }
+
+    buildTypes {
+        debug {
+            signingConfig signingConfigs.debug
+        }
+    }
+}
