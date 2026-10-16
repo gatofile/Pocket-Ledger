@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f6f7f4">
+  <meta name="description" content="A simple, private money tracker for your everyday spending.">
+  <link id="appManifest" rel="manifest" href="manifest.json">
+  <script>
+    try {
+      const savedLogo = JSON.parse(localStorage.getItem('pocket-ledger-v1') || '{}').logoStyle;
+      const logoStyle = savedLogo === 'dark' ? 'green' : ['green', 'gray', 'amoled'].includes(savedLogo) ? savedLogo : 'light';
+      document.getElementById('appManifest').href = `manifest-${logoStyle}.json`;
+    } catch (error) {}
+  </script>
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+  <title>Pocket Ledger</title>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="#overview" aria-label="Pocket Ledger home">
+        <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 7.5A2.5 2.5 0 0 1 7.5 5H20v14H7.5A2.5 2.5 0 0 1 5 16.5z"/><path d="M5 8h12a2 2 0 0 1 2 2v4h-5a2.5 2.5 0 0 1 0-5h5"/><circle cx="14" cy="11.5" r=".5"/></svg></span>
+        <span>Pocket<span class="brand-light"> Ledger</span></span>
+      </a>
+    </header>
+
+    <main id="mainContent">
+      <section class="view active" id="overviewView" aria-labelledby="overviewTitle">
+        <div class="page-heading"><div><p class="eyebrow">YOUR MONEY, MADE CLEAR</p><h1 id="overviewTitle">Spent this month</h1></div><div class="month-control" aria-label="Choose month"><button class="icon-button month-arrow month-step" data-delta="-1" aria-label="Previous month"><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg></button><span class="month-label" aria-live="polite"></span><button class="icon-button month-arrow month-step" data-delta="1" aria-label="Next month"><svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></button></div></div>
+        <section class="spent-hero">
+          <div class="hero-kicker"><span class="hero-dot"></span> TOTAL SPENDING</div>
+          <strong id="spentTotal">€0.00</strong>
+          <span class="hero-caption">in <span class="inline-month"></span></span>
+          <button class="primary-button hero-button" id="addSpendingButton" type="button"><span aria-hidden="true">+</span> Add transaction</button>
+          <div class="hero-decoration" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        </section>
+        <section class="panel recent-panel" aria-labelledby="recentHeading">
+          <div class="panel-heading"><div><p class="eyebrow">THE LATEST</p><h2 id="recentHeading">Recent spending</h2></div><button class="text-button" data-tab="net">All activity <span aria-hidden="true">→</span></button></div>
+          <div class="transaction-list" id="recentList"></div>
+        </section>
+      </section>
+
+      <section class="view" id="netView" aria-labelledby="netTitle">
+        <div class="page-heading"><div><p class="eyebrow">MONEY IN VS MONEY OUT</p><h1 id="netTitle">Transactions</h1></div><div class="month-control" aria-label="Choose month"><button class="icon-button month-arrow month-step" data-delta="-1" aria-label="Previous month"><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg></button><span class="month-label" aria-live="polite"></span><button class="icon-button month-arrow month-step" data-delta="1" aria-label="Next month"><svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></button></div></div>
+        <section class="net-hero" id="netHero">
+          <p class="eyebrow">NET THIS MONTH</p><strong id="netTotal">€0.00</strong><span id="netMessage">Income minus spending</span>
+        </section>
+        <section class="panel comparison-panel" aria-label="Income and spending comparison">
+          <div class="panel-heading"><div><p class="eyebrow">MONTHLY COMPARISON</p><h2>In and out</h2></div></div>
+          <div class="compare-row"><div class="compare-label"><span>Received</span><strong id="incomeTotal">€0.00</strong></div><div class="compare-track"><div class="compare-fill income-fill" id="incomeBar"></div></div></div>
+          <div class="compare-row"><div class="compare-label"><span>Spent</span><strong id="comparisonSpent">€0.00</strong></div><div class="compare-track"><div class="compare-fill spending-fill" id="spendingBar"></div></div></div>
+        </section>
+        <section class="panel net-activity-panel" aria-labelledby="netActivityTitle">
+          <div class="panel-heading"><div><h2 id="netActivityTitle">Transactions</h2></div><button class="primary-button section-add-button" id="addTransactionNet" type="button">+ Add transaction</button></div>
+          <div class="transaction-list" id="activityList"></div>
+        </section>
+      </section>
+
+      <section class="view" id="categoriesView" aria-labelledby="categoriesTitle">
+        <div class="page-heading" id="categoriesHeading"><div><p class="eyebrow">WHERE YOUR SPENDING GOES</p><h1 id="categoriesTitle">Categories</h1></div><div class="month-control" aria-label="Choose month"><button class="icon-button month-arrow month-step" data-delta="-1" aria-label="Previous month"><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg></button><span class="month-label" aria-live="polite"></span><button class="icon-button month-arrow month-step" data-delta="1" aria-label="Next month"><svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></button></div><button class="secondary-button category-totals-button" id="showCategoryTotalsButton" type="button">View category totals</button></div>
+        <div id="categoryOverviewContent">
+          <section class="panel donut-panel" aria-label="Spending by category chart">
+            <div class="donut-chart" id="donutChart"><div class="donut-hole"><span class="donut-caption">TOTAL SPENT</span><strong id="donutTotal">€0.00</strong><span class="donut-month inline-month"></span></div></div>
+          </section>
+          <section class="panel breakdown-panel" id="breakdownPanel" aria-labelledby="breakdownTitle" tabindex="-1">
+            <div class="panel-heading"><div><p class="eyebrow">MONTHLY BREAKDOWN</p><h2 id="breakdownTitle">By category</h2></div></div>
+            <div id="categoryBreakdown" class="breakdown-list"></div>
+          </section>
+          <details class="saved-categories"><summary>Manage categories</summary><div class="category-manage-content"><p class="settings-hint">One-time labels stay in your activity but are not added here.</p><button class="primary-button new-category-button" id="addCategoryButton" type="button">+ New category</button><div id="categoryManager" class="category-manager"></div></div></details>
+        </div>
+        <section class="panel category-detail" id="categoryDetailPanel" hidden>
+          <div class="detail-heading"><button class="back-button" id="backToCategories" type="button"><span aria-hidden="true">←</span> All categories</button><span class="category-detail-swatch" id="detailSwatch"></span></div>
+          <p class="eyebrow">SPENT IN <span id="detailMonth"></span></p><h2 id="detailCategoryName"></h2><strong class="detail-total" id="detailTotal">€0.00</strong>
+          <div class="transaction-list detail-list" id="categoryTransactionList"></div>
+        </section>
+      </section>
+
+      <section class="view" id="settingsView" aria-labelledby="settingsTitle">
+        <div class="page-heading"><div><p class="eyebrow">MAKE IT YOURS</p><h1 id="settingsTitle">Settings</h1></div></div>
+        <section class="panel setting-panel currency-panel">
+          <div class="setting-copy"><div class="setting-icon currency-setting-icon">¤</div><div><h2>Currency</h2><p>Choose how amounts appear throughout the app.</p></div></div>
+          <div class="currency-picker-wrap">
+            <button id="currencyPickerButton" class="currency-picker-button" type="button" aria-haspopup="listbox" aria-expanded="false">
+              <span class="currency-picker-symbol" id="currencyPickerSymbol">€</span><span class="currency-picker-current"><strong id="currencyPickerCode">EUR</strong><small id="currencyPickerName">Euro</small></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg>
+            </button>
+            <div id="currencyOptions" class="currency-picker-popover" role="listbox" aria-label="Choose currency" hidden></div>
+          </div>
+        </section>
+        <section class="panel setting-panel language-panel">
+          <div class="setting-copy"><div class="setting-icon language-setting-icon" aria-hidden="true">文</div><div><h2>Language</h2><p>Choose the language used in the app.</p><p class="language-coverage-note">The app language also sets the date, time, and number formats.</p></div></div>
+          <div class="language-picker-wrap"><button id="languagePickerButton" class="language-picker-button" type="button" aria-haspopup="listbox" aria-expanded="false" aria-label="Choose language"><span id="languagePickerName">English</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg></button><div id="languagePickerOptions" class="language-picker-popover" hidden><div id="languageOptionList" class="language-option-list" role="listbox" aria-label="Available languages"></div></div></div>
+        </section>
+        <section class="panel setting-panel theme-panel">
+          <div class="setting-copy"><div class="setting-icon theme-setting-icon"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9c0-1-.8-2-2-2h-1a2 2 0 0 1-2-2c0-.8.5-1.5 1.2-1.8A2 2 0 0 0 18 4.5 9 9 0 0 0 12 3Z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10" cy="7.5" r="1"/></svg></div><div><h2>Appearance</h2><p>Pick a light or dark look for Pocket Ledger.</p></div></div>
+          <div class="theme-options" role="group" aria-label="Appearance">
+            <button class="theme-option" data-theme-choice="light"><span class="theme-preview light-preview"></span>Light</button>
+            <button class="theme-option" data-theme-choice="green"><span class="theme-preview green-preview"></span>Green dark</button>
+            <button class="theme-option" data-theme-choice="gray"><span class="theme-preview gray-preview"></span>Gray dark</button>
+            <button class="theme-option" data-theme-choice="amoled"><span class="theme-preview amoled-preview"></span>AMOLED</button>
+          </div>
+          <button class="secondary-button reset-appearance" id="resetAppearance" type="button">Reset appearance</button>
+        </section>
+        <section class="panel setting-panel accent-panel">
+          <div class="setting-copy"><div class="setting-icon accent-setting-icon"><span></span></div><div><h2>Accent color</h2><p>Choose the color used for buttons and selected tabs.</p></div></div>
+          <div class="accent-controls">
+            <div class="accent-picker-wrap">
+              <button class="color-picker-control" id="openAccentPicker" type="button" aria-expanded="false" aria-controls="accentPickerPanel"><span class="accent-color-swatch" id="accentColorSwatch"></span><span id="accentColorValue">#177E68</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg></button>
+              <div class="accent-picker-popover" id="accentPickerPanel" hidden>
+                <div class="saturation-plane" id="colorSaturationPlane" role="slider" tabindex="0" aria-label="Color saturation and brightness" aria-valuemin="0" aria-valuemax="100"><span class="saturation-marker" id="colorPickerMarker"></span></div>
+                <label class="hue-control"><span>Hue</span><input id="accentHue" type="range" min="0" max="359" value="156" aria-label="Accent color hue"></label>
+                <div class="hex-color-row"><label for="accentHexInput">Hex color</label><input id="accentHexInput" type="text" inputmode="text" maxlength="7" value="#177E68" autocomplete="off" spellcheck="false"></div>
+              </div>
+            </div>
+            <button class="secondary-button reset-accent-button" id="resetAccentColor" type="button">Reset accent</button>
+          </div>
+        </section>
+        <section class="panel setting-panel logo-panel">
+          <div class="setting-copy"><div class="setting-icon logo-setting-icon"><svg viewBox="0 0 24 24"><path d="M5 7.5A2.5 2.5 0 0 1 7.5 5H20v14H7.5A2.5 2.5 0 0 1 5 16.5z"/><path d="M5 8h12a2 2 0 0 1 2 2v4h-5a2.5 2.5 0 0 1 0-5h5"/><circle cx="14" cy="11.5" r=".5"/></svg></div><div><h2>Logo style</h2><p>Choose the background used behind the Pocket Ledger logo.</p></div></div>
+          <div class="logo-options" role="group" aria-label="Logo style">
+            <button class="logo-option" data-logo-choice="light" type="button" aria-pressed="false"><span class="logo-preview" data-logo-preview="light"><svg viewBox="0 0 24 24"><path d="M5 7.5A2.5 2.5 0 0 1 7.5 5H20v14H7.5A2.5 2.5 0 0 1 5 16.5z"/><path d="M5 8h12a2 2 0 0 1 2 2v4h-5a2.5 2.5 0 0 1 0-5h5"/><circle cx="14" cy="11.5" r=".5"/></svg></span>Light</button>
+            <button class="logo-option" data-logo-choice="green" type="button" aria-pressed="false"><span class="logo-preview" data-logo-preview="green"><svg viewBox="0 0 24 24"><path d="M5 7.5A2.5 2.5 0 0 1 7.5 5H20v14H7.5A2.5 2.5 0 0 1 5 16.5z"/><path d="M5 8h12a2 2 0 0 1 2 2v4h-5a2.5 2.5 0 0 1 0-5h5"/><circle cx="14" cy="11.5" r=".5"/></svg></span>Green</button>
+            <button class="logo-option" data-logo-choice="gray" type="button" aria-pressed="false"><span class="logo-preview" data-logo-preview="gray"><svg viewBox="0 0 24 24"><path d="M5 7.5A2.5 2.5 0 0 1 7.5 5H20v14H7.5A2.5 2.5 0 0 1 5 16.5z"/><path d="M5 8h12a2 2 0 0 1 2 2v4h-5a2.5 2.5 0 0 1 0-5h5"/><circle cx="14" cy="11.5" r=".5"/></svg></span>Gray</button>
+            <button class="logo-option" data-logo-choice="amoled" type="button" aria-pressed="false"><span class="logo-preview" data-logo-preview="amoled"><svg viewBox="0 0 24 24"><path d="M5 7.5A2.5 2.5 0 0 1 7.5 5H20v14H7.5A2.5 2.5 0 0 1 5 16.5z"/><path d="M5 8h12a2 2 0 0 1 2 2v4h-5a2.5 2.5 0 0 1 0-5h5"/><circle cx="14" cy="11.5" r=".5"/></svg></span>AMOLED</button>
+          </div>
+        </section>
+        <section class="panel setting-panel install-panel">
+          <div class="setting-copy"><div class="setting-icon install-setting-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 17v3h14v-3"/></svg></div><div><h2>Install on Android</h2><p>Add Pocket Ledger to your Android home screen for quick access.</p></div></div>
+          <button class="primary-button install-button" id="installButton" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 17v3h14v-3"/></svg><span id="installButtonLabel">Install app</span></button>
+        </section>
+        <section class="panel setting-panel backup-panel">
+          <div class="setting-copy"><div class="setting-icon backup-setting-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 17v3h14v-3"/></svg></div><div><h2>Data backup</h2><p>Export your transactions, categories, and settings, or import a backup from another browser or device.</p></div></div>
+          <div class="backup-actions"><button class="secondary-button" id="exportDataButton" type="button">Export data</button><button class="primary-button" id="importDataButton" type="button">Import data</button></div>
+          <input id="importDataFile" type="file" accept=".json,application/json" hidden>
+        </section>
+        <section class="panel data-panel">
+          <div class="setting-copy"><div class="setting-icon danger-setting-icon"><svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6m4-6v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></div><div><h2>Activity data</h2><p>Remove saved entries and categories you created.</p></div></div>
+          <button class="danger-button" id="openDeleteActivity" type="button">Delete all activity</button>
+        </section>
+        <p class="privacy-note">Your data stays in this browser on this device. Export a backup to move it to another browser or device.</p>
+      </section>
+    </main>
+
+    <nav class="bottom-nav" aria-label="Main tabs">
+      <button class="tab-button active" data-tab="overview" aria-current="page"><svg viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg><span>Main</span></button>
+      <button class="tab-button" data-tab="net"><svg viewBox="0 0 24 24"><path d="M4 17 9 12l3 3 7-8"/><path d="M14 7h5v5"/></svg><span>Transactions</span></button>
+      <button class="tab-button" data-tab="categories"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3v9h9"/></svg><span>Categories</span></button>
+      <button class="tab-button" data-tab="settings"><svg viewBox="0 0 24 24"><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z"/><path d="m19.4 15 .1.1 1.2.9-1.4 2.4-1.4-.6a8 8 0 0 1-1.5.9l-.2 1.5h-2.8l-.2-1.5a8 8 0 0 1-1.5-.9l-1.4.6-1.4-2.4 1.2-.9a7 7 0 0 1 0-1.8l-1.2-.9 1.4-2.4 1.4.6a8 8 0 0 1 1.5-.9l.2-1.5h2.8l.2 1.5a8 8 0 0 1 1.5.9l1.4-.6 1.4 2.4-1.2.9a7 7 0 0 1 0 1.7Z"/></svg><span>Settings</span></button>
+    </nav>
+  </div>
+
+  <dialog id="transactionDialog" class="modal">
+    <form id="transactionForm" method="dialog">
+      <div class="modal-heading"><div><p class="eyebrow">KEEP YOUR RECORDS UP TO DATE</p><h2 id="transactionDialogTitle">Add transaction</h2></div><button type="button" class="icon-button close-dialog" aria-label="Close"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div>
+      <div class="type-switch" role="group" aria-label="Transaction type"><button type="button" class="type-option active" data-type="expense">I spent</button><button type="button" class="type-option" data-type="income">I received</button></div>
+      <label class="field-label" for="amountInput">Amount</label><div class="amount-field"><span id="amountCurrency">€</span><input id="amountInput" inputmode="decimal" type="number" min="0.01" step="0.01" placeholder="0.00" required></div>
+      <label class="field-label" for="transactionCategoryButton">Category</label><div class="transaction-category-picker"><button id="transactionCategoryButton" class="transaction-category-button" type="button" aria-haspopup="listbox" aria-expanded="false"><span id="transactionCategoryCurrent">Other…</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg></button><div id="transactionCategoryOptions" class="transaction-category-options" role="listbox" aria-label="Transaction category" hidden></div></div><input id="transactionCategory" type="hidden" value="__other__">
+      <div id="customCategoryFields" hidden>
+        <label class="field-label" for="customCategoryInput">Name this category</label><input class="text-input" id="customCategoryInput" type="text" maxlength="32" placeholder="e.g. Birthday gift">
+        <fieldset class="save-category-choice"><legend>Save this category for later?</legend><div class="choice-pills"><label><input type="radio" name="saveCategory" value="no" checked><span>No, just this time</span></label><label><input type="radio" name="saveCategory" value="yes"><span>Yes, save it</span></label></div></fieldset>
+      </div>
+      <div class="datetime-fields">
+        <button class="date-time-card" id="openDatePicker" type="button" aria-expanded="false" aria-controls="datePickerPanel"><span class="date-time-label">Date</span><span class="date-time-control"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3v3m10-3v3M4 9h16M5 5h14a1 1 0 0 1 1 1v13H4V6a1 1 0 0 1 1-1Z"/><path d="M8 13h.01M12 13h.01M16 13h.01M8 16h.01M12 16h.01"/></svg><strong id="transactionDateDisplay"></strong><span class="picker-chevron">⌄</span></span></button>
+        <button class="date-time-card" id="openTimePicker" type="button" aria-expanded="false" aria-controls="timePickerPanel"><span class="date-time-label">Time</span><span class="date-time-control"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><strong id="transactionTimeDisplay"></strong><span class="picker-chevron">⌄</span></span></button>
+      </div>
+      <input id="transactionDate" type="hidden"><input id="transactionTime" type="hidden">
+      <section class="date-time-picker" id="datePickerPanel" aria-label="Choose date" hidden>
+        <div class="picker-heading"><strong id="calendarMonthLabel"></strong><span><button class="icon-button picker-nav" id="calendarPrev" type="button" aria-label="Previous month">‹</button><button class="icon-button picker-nav" id="calendarNext" type="button" aria-label="Next month">›</button></span></div>
+        <div class="calendar-weekdays" aria-hidden="true"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>
+        <div class="calendar-days" id="calendarDays" role="grid" aria-label="Calendar days"></div>
+      </section>
+      <section class="date-time-picker time-picker-panel" id="timePickerPanel" aria-label="Choose time" hidden>
+        <div class="time-picker-fields">
+          <div class="time-stepper"><span>Hour</span><button class="time-step-button" type="button" data-time-part="hour" data-step="1" aria-label="Increase hour">+</button><input id="timeHour" type="number" min="1" max="12" inputmode="numeric" aria-label="Hour"><button class="time-step-button" type="button" data-time-part="hour" data-step="-1" aria-label="Decrease hour">−</button></div>
+          <span class="time-separator">:</span>
+          <div class="time-stepper"><span>Minute</span><button class="time-step-button" type="button" data-time-part="minute" data-step="5" aria-label="Increase minutes">+</button><input id="timeMinute" type="number" min="0" max="59" inputmode="numeric" aria-label="Minute"><button class="time-step-button" type="button" data-time-part="minute" data-step="-5" aria-label="Decrease minutes">−</button></div>
+          <div class="ampm-switch" id="ampmSwitch" role="group" aria-label="AM or PM"><button type="button" data-period="am">AM</button><button type="button" data-period="pm">PM</button></div>
+        </div>
+        <p class="picker-hint">Use the plus and minus buttons or enter a time.</p>
+      </section>
+      <label class="field-label" for="transactionNote">Note <span class="optional">Optional</span></label><input class="text-input" id="transactionNote" type="text" maxlength="80" placeholder="e.g. Weekly food shop">
+      <p class="form-error" id="transactionError" role="alert"></p><button class="primary-button submit-button" type="submit">Save transaction</button>
+    </form>
+  </dialog>
+
+  <dialog id="categoryDialog" class="modal">
+    <form id="categoryForm" method="dialog">
+      <div class="modal-heading"><div><p class="eyebrow">SAVED CATEGORY</p><h2 id="categoryDialogTitle">New category</h2></div><button type="button" class="icon-button close-dialog" aria-label="Close"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div>
+      <label class="field-label">Category type</label><input id="categoryKind" type="hidden" value="expense"><div class="category-kind-switch" role="group" aria-label="Category type"><button type="button" data-category-kind="expense" class="active" aria-pressed="true">Spending</button><button type="button" data-category-kind="income" aria-pressed="false">Income</button></div>
+      <label class="field-label" for="categoryName">Name</label><input class="text-input" id="categoryName" type="text" maxlength="28" placeholder="e.g. Pet care" required>
+      <label class="field-label">Choose a color</label><div class="color-options" id="colorOptions" role="radiogroup" aria-label="Category color"></div>
+      <p class="form-error" id="categoryError" role="alert"></p><button class="primary-button submit-button" type="submit">Save category</button>
+    </form>
+  </dialog>
+
+  <dialog id="deleteActivityDialog" class="modal danger-modal">
+    <form id="deleteActivityForm">
+      <div class="modal-heading"><div><p class="eyebrow">PERMANENT ACTION</p><h2>Delete all activity?</h2></div><button type="button" class="icon-button close-dialog" aria-label="Close"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div>
+      <p class="danger-copy">This will erase all income and spending entries and remove categories you created. Default categories, currency, and appearance will stay. This cannot be undone.</p>
+      <label class="field-label" for="deleteActivityText">Type <strong>DELETE</strong> to confirm</label><input class="text-input" id="deleteActivityText" type="text" autocomplete="off" spellcheck="false">
+      <div class="danger-actions"><button class="secondary-button close-dialog" type="button">Cancel</button><button class="danger-button" id="confirmDeleteActivity" type="submit" disabled>Delete all activity</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="categoryTotalsDialog" class="modal category-totals-modal">
+    <div class="category-totals-content">
+      <div class="modal-heading"><div><p class="eyebrow">SINCE YOU STARTED</p><h2>All-time category totals</h2></div><button type="button" class="icon-button close-dialog" aria-label="Close"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div>
+      <div id="allTimeCategoryOverview"><div class="lifetime-summary"><span>Total spent</span><strong id="allTimeSpentTotal">€0.00</strong><small id="allTimeSpentCount">0 transactions</small></div><div id="allTimeCategoryBreakdown" class="breakdown-list"></div></div>
+      <section id="allTimeCategoryDetail" class="all-time-detail" hidden><button class="back-button" id="backToAllTimeCategories" type="button"><span aria-hidden="true">←</span> All categories</button><div class="all-time-category-heading"><span class="category-detail-swatch" id="allTimeDetailSwatch"></span><div><p class="eyebrow">LIFETIME SPENDING</p><h3 id="allTimeDetailName"></h3></div></div><strong class="detail-total" id="allTimeDetailTotal">€0.00</strong><p class="all-time-detail-meta" id="allTimeDetailMeta"></p><div class="transaction-list detail-list" id="allTimeCategoryTransactions"></div></section>
+    </div>
+  </dialog>
+
+  <dialog id="actionConfirmDialog" class="modal danger-modal">
+    <div class="action-confirm-content"><div class="modal-heading"><div><p class="eyebrow">PLEASE CONFIRM</p><h2 id="actionConfirmTitle">Confirm action</h2></div><button type="button" class="icon-button close-dialog" aria-label="Close"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div><p class="danger-copy" id="actionConfirmMessage"></p><div class="danger-actions"><button class="secondary-button close-dialog" type="button">Cancel</button><button class="danger-button" id="actionConfirmButton" type="button">Delete</button></div></div>
+  </dialog>
+
+  <dialog id="installHelpDialog" class="modal">
+    <div class="install-help-content"><div class="modal-heading"><div><h2>Install Pocket Ledger</h2></div><button type="button" class="icon-button close-dialog" aria-label="Close"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div><p>Your browser can’t open the install prompt right now. To install on Android, open Pocket Ledger in Chrome at its secure HTTPS address, then open Chrome’s menu and choose Install app or Add to Home screen.</p><button class="primary-button submit-button close-dialog" type="button">Got it</button></div>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="app.js" defer></script>
+</body>
+</html>
