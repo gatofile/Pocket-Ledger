@@ -143,6 +143,9 @@ public final class MainActivity extends Activity {
     private boolean externalPickerOpen;
     private boolean wasStopped;
     private boolean stoppedForExternalPicker;
+    private AppUpdater appUpdater;
+    private TextView updateStatusView;
+    private Button checkUpdatesButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -168,6 +171,7 @@ public final class MainActivity extends Activity {
         transactions = loadTransactionsOrMigrate();
         configureLauncherIcon(logoStyle);
         configureSystemBars();
+        initializeUpdater();
         setContentView(createScreen());
         refreshScreen();
         restorePagePositions(navigationState);
@@ -194,6 +198,7 @@ public final class MainActivity extends Activity {
     @Override protected void onStop() {
         wasStopped = !isChangingConfigurations();
         stoppedForExternalPicker = externalPickerOpen;
+        if (!externalPickerOpen && appUpdater != null) appUpdater.onStop();
         finishOpeningAnimation();
         super.onStop();
     }
@@ -233,6 +238,17 @@ public final class MainActivity extends Activity {
     protected void onResume() {
         super.onResume();
         if (transactionList != null) refreshScreen();
+        if (appUpdater != null) appUpdater.onResume();
+    }
+
+    @Override protected void onPause() {
+        if (appUpdater != null) appUpdater.onPause();
+        super.onPause();
+    }
+
+    @Override protected void onDestroy() {
+        if (appUpdater != null) appUpdater.close();
+        super.onDestroy();
     }
 
     @Override
@@ -1003,6 +1019,20 @@ private LinearLayout createMonthHeading(String titleText) {
     }
 
     private void buildSettingsPage(LinearLayout parent) {
+        LinearLayout updatesCard = settingsCard();
+        addSettingHeading(updatesCard, tr("App updates"), tr("Get the latest version from GitHub."), null, R.drawable.ic_settings_backup);
+        updateStatusView = bodyText(tr(appUpdater.status()), MUTED, 12);
+        LinearLayout.LayoutParams updateStatusParams = new LinearLayout.LayoutParams(-1, -2);
+        updateStatusParams.topMargin = dp(10);
+        updatesCard.addView(updateStatusView, updateStatusParams);
+        checkUpdatesButton = secondaryButton(tr("Check for updates"));
+        LinearLayout.LayoutParams checkUpdateParams = new LinearLayout.LayoutParams(-1, dp(48));
+        checkUpdateParams.topMargin = dp(10);
+        updatesCard.addView(checkUpdatesButton, checkUpdateParams);
+        checkUpdatesButton.setOnClickListener(view -> appUpdater.check(true));
+        refreshUpdateStatus();
+        addPageGap(parent, updatesCard, 8);
+
         LinearLayout languageCard = settingsCard();
         addSettingHeading(languageCard, tr("Language"), tr("Choose the language used in the app."), "文", 0);
         TextView languageFormatNote = bodyText(tr("The app language also sets the date, time, and number formats."), MUTED, 11);
@@ -1016,7 +1046,7 @@ private LinearLayout createMonthHeading(String titleText) {
         languageButtonParams.topMargin = dp(9);
         languageCard.addView(languageButton, languageButtonParams);
         languageButton.setOnClickListener(view -> showLanguagePicker());
-        addPageGap(parent, languageCard, 8);
+        addPageGap(parent, languageCard, 10);
 
         LinearLayout currencyCard = settingsCard();
         addSettingHeading(currencyCard, tr("Currency"), tr("Choose how amounts appear throughout the app."), "¤", 0);
@@ -1187,6 +1217,37 @@ private LinearLayout createMonthHeading(String titleText) {
             Toast.makeText(this, tr("No browser is available to open the donation page."),
                     Toast.LENGTH_LONG).show();
         }
+    }
+
+    private void initializeUpdater() {
+        appUpdater = new AppUpdater(this, new AppUpdater.Listener() {
+            @Override public void onStatusChanged() { refreshUpdateStatus(); }
+            @Override public void onUpdateAvailable(String version, Runnable accept) {
+                new LedgerDialogBuilder().setTitle(tr("Update available"))
+                        .setMessage(tr("A new version of Pocket Ledger is available.") + "\n\n"
+                                + tr("Version") + " " + version + "\n\n" + tr("Download and install the update?"))
+                        .setNegativeButton(tr("Later"), null)
+                        .setPositiveButton(tr("Update now"), (dialog, which) -> accept.run()).show();
+            }
+            @Override public void onInstallPermissionNeeded(Runnable openSettings) {
+                new LedgerDialogBuilder().setTitle(tr("Allow app updates"))
+                        .setMessage(tr("Android needs permission to install updates from Pocket Ledger. Enable it on the next screen, then return to install the update."))
+                        .setNegativeButton(tr("Cancel"), null)
+                        .setPositiveButton(tr("Open Android settings"), (dialog, which) -> openSettings.run()).show();
+            }
+            @Override public void onMessage(String title, String message) {
+                new LedgerDialogBuilder().setTitle(tr(title)).setMessage(tr(message))
+                        .setPositiveButton(tr("Close"), null).show();
+            }
+        });
+    }
+
+    private void refreshUpdateStatus() {
+        if (appUpdater == null || updateStatusView == null || checkUpdatesButton == null) return;
+        String progress = appUpdater.progress() >= 0 ? " " + appUpdater.progress() + "%" : "";
+        updateStatusView.setText(tr(appUpdater.status()) + progress);
+        checkUpdatesButton.setEnabled(!appUpdater.isBusy());
+        checkUpdatesButton.setAlpha(appUpdater.isBusy() ? .65f : 1f);
     }
 
     private void addSettingHeading(LinearLayout card, String title, String description, String glyph, int iconResource) {
