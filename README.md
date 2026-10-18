@@ -2,13 +2,13 @@
 
 An offline Android money tracker for recording income and expenses, understanding monthly spending, and managing categories.
 
-**Current version: 0.5.7** · **Android 6.0 or newer**
+**Current version: 0.5.8** · **Android 6.0 or newer**
 
 ## Download and install
 
 Get the APK from the [latest release](https://github.com/gatofile/Pocket-Ledger/releases/latest).
 
-1. Download `Pocket-Ledger-Android-0.5.7.apk` on your Android phone.
+1. Download `Pocket-Ledger-Android-0.5.8.apk` on your Android phone.
 2. Open the downloaded file and follow Android's installation instructions. If asked, allow your browser or Files app to install this APK.
 3. Open Pocket Ledger. No account or internet connection is needed to use it.
 
@@ -26,11 +26,12 @@ Installing an update signed with the same key preserves existing data. Export a 
 - **Backups:** export and import transactions, categories, and settings as JSON. Backups are compatible with the included web app.
 - **Data controls:** reset appearance or delete activity with an explicit confirmation.
 - **Optional donations:** the Donate button in Settings opens [Ko-fi](https://ko-fi.com/gatofile) in your browser.
+- **App updates:** checks GitHub when opened and asks before downloading an update. Check manually from the first section in Settings; Android confirms installation.
 
 Opening the app plays a short animation and selects the current month. Browsing older months keeps charts and category details aligned with the selected month.
 
 ## Privacy and offline use
 
-Transactions, categories, and preferences are stored locally on the device. The Android app does not request internet access or sync data to a server. Use **Settings → Export data** to keep a backup or move data to another device.
+Transactions, categories, and preferences are stored locally on the device and are not synced to a server. The app connects to GitHub to check for releases and download updates you accept. No financial data is sent with update requests, and money tracking works offline. Use **Settings → Export data** to keep a backup or move data to another device.
 
 Deleting the app can remove its local data. Keep exported backups somewhere safe.

@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.8
+
+- Check GitHub for updates when the app opens, with an optional download and Android installation flow.
+- Added App updates as the first Settings section, including manual checks, download progress, and an up-to-date status.
+- Verify downloaded APK size, GitHub checksum when available, package identity, version, and signing certificate before installation.
+- Added translations for the update controls and kept offline tracking available when GitHub cannot be reached.
+
 ## 0.5.7
 
 - Added an optional Donate button in Settings that opens https://ko-fi.com/gatofile in the phone's browser.
